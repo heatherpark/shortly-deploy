@@ -3,6 +3,9 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      options : {
+        seperator: ':'
+      },
       dist: {
         src: [
           'public/client/**/*.js,',
@@ -25,27 +28,16 @@ module.exports = function(grunt) {
         script: 'server.js'
       }
     },
-
     uglify: {
+      options: {
+        manage: false
+      },
       dist: {
         files: {
-          src: [
           'public/dist/scripts.min.js': ['public/dist/scripts.js']
-          ]
         }
       }
     },
-
-   grunt.initConfig({
-  uglify: {
-    my_target: {
-      files: {
-        'dest/output.min.js': ['src/input1.js', 'src/input2.js']
-      }
-    }
-  }
-});
-
     jshint: {
       files: [
         // Add filespec list here
@@ -67,9 +59,11 @@ module.exports = function(grunt) {
     cssmin: {
       dist: {
         files:[{
-          expand:true,
-          cwd: 'css/',
-          src: 'public/*.css',
+          expand: true,
+          cwd: 'public/dist/',
+          src: ['public/*.css', 'public/!*.min.css'],
+          dest: ['public/dist/'],
+          ext: '.min.css'
         }]
       }
     },
@@ -93,7 +87,7 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
-        // is the script that we run to push
+        command: 'git push heroku master'
       }
     },
   });
@@ -129,23 +123,54 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('build', [
-    'nodemon','jshint','node','mochaTest','concat:dist','uglify:dist', 'cssmin:dist'
+    'nodemon',
+    'jshint',
+    'node','mochaTest',
+    'concat:dist',
+    'uglify:dist',
+    'cssmin:dist'
   ]);
 
   grunt.registerTask('upload', function(n) {
     if(grunt.option('prod')) {
       // add your production server task here
       // everything plus produc shelll
+      [
+        'concat',
+        'uglify',
+        'jshint',
+        'cssmin',
+        'concat:dist',
+        'uglify:dist',
+        'cssmin:dist'
+      ]
       grunt.task.run(['shell:prodServer']);
     } else {
+         [
+        'concat',
+        'uglify',
+        'jshint',
+        'cssmin',
+        'concat:dist',
+        'uglify:dist',
+        'cssmin:dist',
+        'build',
+        'test'
+      ]
       grunt.task.run([ 'server-dev' ]);
     }
   });
 
   grunt.registerTask('deploy', [
     // push everything - shell
-    if(grunt.option('prod')) {
-  ]);
-
-
+        'concat',
+        'uglify',
+        'jshint',
+        'cssmin',
+        'concat:dist',
+        'uglify:dist',
+        'cssmin:dist',
+        'shell:prodServer'
+  ]
+  );
 };

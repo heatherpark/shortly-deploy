@@ -1,17 +1,34 @@
 var Bookshelf = require('bookshelf');
 var path = require('path');
+var mongoose = require('mongoose');
+Schema = mongoose.Schema;
 
-var db = Bookshelf.initialize({
-  client: 'sqlite3',
-  connection: {
-    host: '127.0.0.1',
-    user: 'your_database_user',
-    password: 'password',
-    database: 'shortlydb',
-    charset: 'utf8',
-    filename: path.join(__dirname, '../db/shortly.sqlite')
-  }
+var db = mongoose.connection;
+
+// var db = Bookshelf.initialize({
+//   client: 'sqlite3',
+//   connection: {
+//     host: '127.0.0.1',
+//     user: 'your_database_user',
+//     password: 'password',
+//     database: 'shortlydb',
+//     charset: 'utf8',
+//     filename: path.join(__dirname, '../db/shortly.sqlite')
+//   }
+// });
+
+
+db.on('error', console.error);
+db.once('open', function() {
+  var movieSchema = new mongoose.Schema({
+    title: { type: String },
+    rating: String,
+    releaseYear: Number,
+    hasCreditCookie: Boolean
+  });
 });
+
+mongoose.connect('mongodb://localhost/test');
 
 db.knex.schema.hasTable('urls').then(function(exists) {
   if (!exists) {
