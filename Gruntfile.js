@@ -28,6 +28,7 @@ module.exports = function(grunt) {
         script: 'server.js'
       }
     },
+
     uglify: {
       options: {
         manage: false
@@ -57,12 +58,13 @@ module.exports = function(grunt) {
     },
 
     cssmin: {
-      dist: {
+      target: {
         files:[{
           expand: true,
-          cwd: 'public/dist/',
-          src: ['public/*.css', 'public/!*.min.css'],
-          dest: ['public/dist/'],
+          // cwd is current working directory
+          cwd: 'public',
+          src: ['style.css'],
+          dest: ['public/dist'],
           ext: '.min.css'
         }]
       }
@@ -87,10 +89,40 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
+        options: {
+          // display the messages log
+          // standard error boolean values\
+          callback:log,
+          stderr: false
+        },
         command: 'git push heroku master'
       }
     },
   });
+
+//   grunt.log.writeln([msg])
+
+
+  function log(err, stdout, stderr, cb) {
+    if (err) {
+        cb(err);
+        return;
+    }
+
+    console.log(stdout);
+    cb();
+}
+
+// grunt.initConfig({
+//     shell: {
+//         dirListing: {
+//             command: 'ls',
+//             options: {
+//                 callback: log
+//             }
+//         }
+//     }
+// });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -119,58 +151,34 @@ module.exports = function(grunt) {
   ////////////////////////////////////////////////////
 
   grunt.registerTask('test', [
-    'mochaTest'
+    'mochaTest',
+    'jshint'
   ]);
 
   grunt.registerTask('build', [
-    'nodemon',
-    'jshint',
-    'node','mochaTest',
-    'concat:dist',
-    'uglify:dist',
-    'cssmin:dist'
+    'concat',
+    'uglify',
+    'cssmin'
   ]);
+  // dont need to specify dist
+// grunt upload --env=production
 
   grunt.registerTask('upload', function(n) {
+    // grunt upload --prod=true
+    // in order for 143 to activate it needs a truthy statement -- > boolean values
     if(grunt.option('prod')) {
       // add your production server task here
       // everything plus produc shelll
-      [
-        'concat',
-        'uglify',
-        'jshint',
-        'cssmin',
-        'concat:dist',
-        'uglify:dist',
-        'cssmin:dist'
-      ]
+      ['test', 'build'];
       grunt.task.run(['shell:prodServer']);
+      // pushing to heroku
     } else {
-         [
-        'concat',
-        'uglify',
-        'jshint',
-        'cssmin',
-        'concat:dist',
-        'uglify:dist',
-        'cssmin:dist',
-        'build',
-        'test'
-      ]
+      ['test', 'build'];
       grunt.task.run([ 'server-dev' ]);
+      //
     }
   });
-
-  grunt.registerTask('deploy', [
-    // push everything - shell
-        'concat',
-        'uglify',
-        'jshint',
-        'cssmin',
-        'concat:dist',
-        'uglify:dist',
-        'cssmin:dist',
-        'shell:prodServer'
-  ]
-  );
+  // grunt.registerTask('deploy',['build','upload']);
+  // deploy goes into upload
 };
+// test -- > build --- > upload - prod goes to production server, just deploy will run server --> deploy / gr
